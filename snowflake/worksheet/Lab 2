@@ -1,0 +1,28 @@
+-- Snowflake Snowsight Worksheet
+-- Lab 2: Spatial join (ST_WITHIN) + polygon area distribution
+-- Tables:
+--   GEOLAB.PERFORMANCE.CANADA_DISSEMINATION_AREAS (polygons, GEOGRAPHY column: geog)
+--   GEOLAB.PERFORMANCE.RAW_CELL_TOWERS            (points,   GEOGRAPHY column: geog)
+
+-- 1) Count cell towers per dissemination area (point-in-polygon)
+SELECT
+  t1.dauid,
+  COUNT(t2.geog) AS count_towers
+FROM GEOLAB.PERFORMANCE.CANADA_DISSEMINATION_AREAS t1
+INNER JOIN GEOLAB.PERFORMANCE.RAW_CELL_TOWERS t2
+  ON ST_WITHIN(t2.geog, t1.geog)
+GROUP BY 1
+ORDER BY count_towers DESC;
+
+-- 2) Distribution of polygon areas (bucketed)
+SELECT
+  CASE
+    WHEN ST_AREA(geog) < 1e8 THEN '0 - 100M'
+    WHEN ST_AREA(geog) >= 1e8  AND ST_AREA(geog) < 1e9  THEN '100M - 1B'
+    WHEN ST_AREA(geog) >= 1e9  AND ST_AREA(geog) < 1e10 THEN '1B - 10B'
+    ELSE '10B and more'
+  END AS area_bucket,
+  COUNT(*) AS cnt
+FROM GEOLAB.PERFORMANCE.CANADA_DISSEMINATION_AREAS
+GROUP BY 1
+ORDER BY cnt DESC;
