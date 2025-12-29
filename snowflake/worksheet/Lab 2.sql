@@ -26,3 +26,12 @@ SELECT
 FROM GEOLAB.PERFORMANCE.CANADA_DISSEMINATION_AREAS
 GROUP BY 1
 ORDER BY cnt DESC;
+
+
+SELECT t1.dauid, count(t2.lat) AS count_towers 
+FROM geolab.performance.canada_dissemination_areas t1
+INNER JOIN geolab.performance.raw_cell_towers t2 ON ST_WITHIN(t2.geog, t1.geog)
+WHERE ST_AREA(t1.geog) < 1e+10
+GROUP BY 1;
+
+
